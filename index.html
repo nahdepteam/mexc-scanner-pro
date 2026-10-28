@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner MACD Pro (MEXC Futures)</title>
+    <title>Scanner MACD Pro (MEXC Futures + Binance)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { mexc: { bg: '#0b0e14', card: '#151924', border: '#232838', hover: '#1e2436', primary: '#00b897', bull: '#0ECB81', bear: '#F6465D', muted: '#848E9C' } } } } }
@@ -133,10 +133,11 @@
         let topSymbols = [], tickerMap = {}, scanResults = [], filteredResults = [];
         let isScanning = false, shouldStopScan = false, currentScannedTf = '-';
         
+        // Sửa lại map thời gian để tính timestamp lấy đúng 1000 nến
         const TF_MAP = {
-            '1H': { label: '1H', mexcTf: 'Min60' },
-            '4H': { label: '4H', mexcTf: 'Hour4' },
-            '1D': { label: '1D', mexcTf: 'Day1' }
+            '1H': { label: '1H', binanceTf: '1h', mexcTf: 'Min60', seconds: 3600 },
+            '4H': { label: '4H', binanceTf: '4h', mexcTf: 'Hour4', seconds: 14400 },
+            '1D': { label: '1D', binanceTf: '1d', mexcTf: 'Day1', seconds: 86400 }
         };
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -185,6 +186,7 @@
         function computeMACD(closes) { let ema12 = calcEMA(closes, 12), ema26 = calcEMA(closes, 26), macdLine = new Array(closes.length); for(let i=0; i<closes.length; i++) macdLine[i] = ema12[i]-ema26[i]; return { macdLine, signalLine: calcEMA(macdLine, 9) }; }
 
         function checkStrictDivergence(closes, lows) {
+            // Lọc chặn nếu dữ liệu nến < 150 (nguyên nhân gây lỗi trả về 0 kết quả ở bản trước)
             if (!closes || closes.length < 150) return { found: false };
 
             let { macdLine, signalLine } = computeMACD(closes);
@@ -238,12 +240,41 @@
             return { found: lastSignalAgo >= 0 && lastSignalAgo <= 5, candlesAgo: lastSignalAgo };
         }
 
+        async function getCombinedKlines(symbol, timeItem) {
+            // 1. Ưu tiên Fetch Binance Futures (Siêu tốc, Không chặn CORS)
+            try {
+                let bRes = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}USDT&interval=${timeItem.binanceTf}&limit=1000`);
+                if (bRes.ok) {
+                    let bData = await bRes.json();
+                    if (Array.isArray(bData) && bData.length >= 150) {
+                        return { closes: bData.map(item => parseFloat(item[4])), lows: bData.map(item => parseFloat(item[3])) };
+                    }
+                }
+            } catch(e) {}
+
+            // 2. Chuyển hướng ESPORT và coin MEXC-Only qua Vercel. 
+            // CẦN THIẾT KẾ ĐÚNG START/END ĐỂ LẤY ĐƯỢC 1000 NẾN FUTURE (Nếu bỏ qua sẽ bị lỗi mảng < 150 nến)
+            let endTs = Math.floor(Date.now() / 1000); 
+            let startTs = endTs - (1000 * timeItem.seconds);
+            let endpoint = `/contract/kline/${symbol}_USDT?interval=${timeItem.mexcTf}&start=${startTs}&end=${endTs}`;
+            
+            try {
+                let mRes = await fetchMyBackend(endpoint);
+                if (mRes && mRes.success && mRes.data && mRes.data.close && mRes.data.close.length >= 150) {
+                    return { closes: mRes.data.close.map(x => parseFloat(x)), lows: mRes.data.low.map(x => parseFloat(x)) };
+                }
+            } catch(e) {}
+
+            return null;
+        }
+
         async function startScan(tfKey) {
             if (topSymbols.length === 0) await initSymbols();
             if (isScanning || topSymbols.length === 0) return;
 
             let timeItem = TF_MAP[tfKey];
             isScanning = true; shouldStopScan = false; scanResults = []; currentScannedTf = tfKey;
+            
             document.getElementById('btnStopScan').classList.remove('hidden'); 
             document.getElementById('statActiveTf').innerText = tfKey;
             document.getElementById('tableTitle').innerText = `Kết Quả Quét Futures: ${tfKey}`;
@@ -255,16 +286,12 @@
                 if (shouldStopScan) break;
                 let symbol = topSymbols[i];
 
-                // GỌI TRỰC TIẾP API MEXC FUTURES QUA VERCEL
-                let klinesRes = await fetchMyBackend(`/contract/kline/${symbol}_USDT?interval=${timeItem.mexcTf}`);
+                let klinesData = await getCombinedKlines(symbol, timeItem);
                 
-                if (klinesRes && klinesRes.success && klinesRes.data && klinesRes.data.close) {
-                    let closes = klinesRes.data.close.map(x => parseFloat(x));
-                    let lows = klinesRes.data.low.map(x => parseFloat(x));
-                    
-                    let res = checkStrictDivergence(closes, lows);
+                if (klinesData) {
+                    let res = checkStrictDivergence(klinesData.closes, klinesData.lows);
                     if (res.found) {
-                        scanResults.push({ symbol: symbol, price: tickerMap[symbol]?.price || closes[closes.length-1], change: tickerMap[symbol]?.change || 0, tf: tfKey, candlesAgo: res.candlesAgo });
+                        scanResults.push({ symbol: symbol, price: tickerMap[symbol]?.price || klinesData.closes[klinesData.closes.length-1], change: tickerMap[symbol]?.change || 0, tf: tfKey, candlesAgo: res.candlesAgo });
                     }
                 }
 
@@ -274,7 +301,7 @@
                 document.getElementById('progressBar').style.width = `${Math.round((scanned/topSymbols.length)*100)}%`;
                 applyFiltersAndRender();
                 
-                await new Promise(r => setTimeout(r, 20)); // Delay nhẹ để chống Rate Limit
+                await new Promise(r => setTimeout(r, 20));
             }
             
             isScanning = false; document.getElementById('btnStopScan').classList.add('hidden'); 
@@ -312,9 +339,9 @@
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center"><span class="border text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${badge}">${i.tf} - ${i.candlesAgo === 0 ? 'Live (0)' : `Cách ${i.candlesAgo} nến`}</span></td>
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center hide-on-capture">
                             <div class="flex flex-row items-center justify-center gap-1.5">
-                                <a href="${tvBinance}" target="_blank" class="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-[10px] font-medium">BINANCE</a>
-                                <a href="${tvBybit}" target="_blank" class="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-[10px] font-medium">BYBIT</a>
-                                <a href="${tvMexc}" target="_blank" class="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded text-[10px] font-medium">MEXC</a>
+                                <a href="${tvBinance}" target="_blank" class="px-2 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 border border-yellow-500/30 rounded text-[10px] font-medium transition">BINANCE</a>
+                                <a href="${tvBybit}" target="_blank" class="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded text-[10px] font-medium transition">BYBIT</a>
+                                <a href="${tvMexc}" target="_blank" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-medium transition">MEXC</a>
                             </div>
                         </td>
                     </tr>`;
@@ -322,7 +349,7 @@
             tbody.innerHTML = html;
         }
 
-        // TÍNH NĂNG LƯU & XEM LỊCH SỬ (LOCALSTORAGE)
+        // TÍNH NĂNG LƯU & XEM LỊCH SỬ
         function saveScanHistory(tfKey, results) {
             let history = JSON.parse(localStorage.getItem('macdScannerHistory') || '[]');
             let timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -342,7 +369,7 @@
             btnWrapper.innerHTML = '';
             history.forEach((h, index) => {
                 let btn = document.createElement('button');
-                btn.className = 'px-3 py-1.5 bg-mexc-hover border border-mexc-border hover:border-mexc-primary text-xs rounded text-mexc-muted hover:text-white transition';
+                btn.className = 'px-3 py-1.5 bg-mexc-hover border border-mexc-border hover:border-mexc-primary text-xs font-bold rounded-lg text-mexc-muted hover:text-white transition';
                 btn.innerHTML = `Lần ${index + 1}: ${h.tf} (${h.time})`;
                 btn.onclick = () => loadHistoryData(index);
                 btnWrapper.appendChild(btn);
@@ -398,9 +425,7 @@
                 hideEls.forEach(el => el.classList.remove('hidden'));
             }
         }
-        function downloadFile(url, filename) {
-            let a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-        }
+        function downloadFile(url, filename) { let a = document.createElement('a'); a.href = url; a.download = filename; a.click(); }
     </script>
 </body>
 </html>
