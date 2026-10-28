@@ -8,23 +8,19 @@ export default async function handler(req, res) {
         return;
     }
 
-    const { endpoint, ...queryParams } = req.query;
+    const { endpoint } = req.query;
     if (!endpoint) {
         return res.status(400).json({ error: 'Thiếu endpoint' });
     }
 
-    // Nối lại toàn bộ tham số (interval, start, end) vào URL gửi cho MEXC
-    const urlObj = new URL(`https://contract.mexc.com/api/v1${endpoint}`);
-    Object.entries(queryParams).forEach(([key, value]) => {
-        urlObj.searchParams.append(key, value);
-    });
+    const targetUrl = `https://contract.mexc.com/api/v1${endpoint}`;
 
     try {
-        const response = await fetch(urlObj.toString());
+        const response = await fetch(targetUrl);
         const data = await response.json();
         res.status(200).json(data);
     } catch (error) {
-        console.error("Lỗi fetch MEXC:", error);
+        console.error(error);
         res.status(500).json({ success: false, error: 'Lỗi máy chủ' });
     }
 }
