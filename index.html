@@ -73,10 +73,10 @@
 
         <div class="bg-mexc-card border border-mexc-border rounded-xl p-3 sm:p-4 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
             <select id="filterMaxCandlesAgo" onchange="applyFiltersAndRender()" class="bg-mexc-bg border border-emerald-500/40 rounded-lg p-2 font-semibold text-white outline-none">
-                <option value="0">Chỉ nến Live (0)</option>
+                <option value="0" selected>⚡ Chỉ nến Live (0) (Mặc định)</option>
                 <option value="1">Trong vòng ≤ 1 nến</option>
                 <option value="3">Trong vòng ≤ 3 nến</option>
-                <option value="5" selected>⚡ Trong vòng ≤ 5 nến (Mặc định)</option>
+                <option value="5">Trong vòng ≤ 5 nến</option>
             </select>
             <select id="sortOption" onchange="applyFiltersAndRender()" class="bg-mexc-bg border border-mexc-border rounded-lg p-2 text-white font-semibold outline-none">
                 <option value="recency" selected>⚡ Tín hiệu mới nhất</option>
@@ -129,7 +129,10 @@
             return res.json();
         }
 
-        window.addEventListener('DOMContentLoaded', initSymbols);
+        window.addEventListener('DOMContentLoaded', () => {
+            initSymbols();
+            loadResultsFromLocal();
+        });
 
         function updateStatus(state, msg) {
             document.getElementById('scanStatusBadge').classList.remove('hidden');
@@ -158,13 +161,32 @@
             }
         }
 
+        function loadResultsFromLocal() {
+            try {
+                let saved = localStorage.getItem('macdScanData_Pro');
+                if (saved) {
+                    let parsed = JSON.parse(saved);
+                    scanResults = parsed.data || [];
+                    currentScannedTf = parsed.tf || '';
+                    if (scanResults.length > 0) {
+                        document.getElementById('statActiveTf').innerText = currentScannedTf;
+                        document.getElementById('tableTitle').innerText = `Kết Quả Quét Futures Khung ${currentScannedTf} (Lưu Offline)`;
+                        applyFiltersAndRender();
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function saveResultsToLocal() {
+            localStorage.setItem('macdScanData_Pro', JSON.stringify({ tf: currentScannedTf, data: scanResults }));
+        }
+
         function stopScan() { shouldStopScan = true; isScanning = false; document.getElementById('btnStopScan').classList.add('hidden'); updateStatus('ready', 'Đã dừng'); }
 
         function calcEMA(data, period) { let k = 2/(period+1), ema = new Array(data.length); ema[0] = data[0]; for(let i=1; i<data.length; i++) ema[i] = data[i]*k + ema[i-1]*(1-k); return ema; }
         function computeMACD(closes) { let ema12 = calcEMA(closes, 12), ema26 = calcEMA(closes, 26), macdLine = new Array(closes.length); for(let i=0; i<closes.length; i++) macdLine[i] = ema12[i]-ema26[i]; return { macdLine, signalLine: calcEMA(macdLine, 9) }; }
 
         function checkStrictDivergence(jsonKlines) {
-            // Hàm này xử lý cấu trúc JSON chuẩn từ API Futures của MEXC
             if (!jsonKlines || !jsonKlines.data || !jsonKlines.data.close || jsonKlines.data.close.length < 150) return { found: false };
             
             let closes = jsonKlines.data.close.map(x => parseFloat(x));
@@ -214,6 +236,7 @@
             let timeItem = TF_MAP[tfKey];
             isScanning = true; shouldStopScan = false; scanResults = []; currentScannedTf = tfKey;
             document.getElementById('btnStopScan').classList.remove('hidden'); document.getElementById('statActiveTf').innerText = tfKey;
+            document.getElementById('tableTitle').innerText = 'Kết Quả Quét Futures';
             updateStatus('loading', `Đang quét khung ${tfKey}...`);
 
             let scanned = 0, startTime = Date.now();
@@ -223,7 +246,6 @@
                 let symbol = topSymbols[i];
 
                 try {
-                    // Cốt lõi: Gọi NẾN từ MEXC FUTURES thông qua Vercel Backend
                     let klines = await fetchMyBackend(`/contract/kline/${symbol}_USDT?interval=${timeItem.mexcTf}`);
                     if (klines && klines.success) {
                         let res = checkStrictDivergence(klines);
@@ -241,6 +263,8 @@
                 
                 await new Promise(r => setTimeout(r, 5));
             }
+            
+            saveResultsToLocal(); // Tự động lưu vào máy khi quét xong
             isScanning = false; document.getElementById('btnStopScan').classList.add('hidden'); updateStatus('ready', `Hoàn thành!`);
         }
 
