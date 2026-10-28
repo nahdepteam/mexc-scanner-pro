@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner MACD Pro (MEXC Futures + Binance)</title>
+    <title>Scanner MACD Pro (Serverless Vercel)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { mexc: { bg: '#0b0e14', card: '#151924', border: '#232838', hover: '#1e2436', primary: '#00b897', bull: '#0ECB81', bear: '#F6465D', muted: '#848E9C' } } } } }
@@ -22,11 +22,9 @@
 
     <header class="bg-mexc-card border-b border-mexc-border sticky top-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 shadow-md">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-2.5 sm:gap-3">
-            <div class="flex items-center justify-between w-full lg:w-auto">
-                <div class="flex items-center gap-2.5">
-                    <div class="bg-mexc-primary/20 p-2 rounded-lg text-mexc-primary border border-mexc-primary/30 shrink-0"><i class="fa-solid fa-radar text-xl sm:text-2xl"></i></div>
-                    <h1 class="text-base sm:text-xl font-bold tracking-wide">Scanner MACD Pro</h1>
-                </div>
+            <div class="flex items-center gap-2.5">
+                <div class="bg-mexc-primary/20 p-2 rounded-lg text-mexc-primary border border-mexc-primary/30 shrink-0"><i class="fa-solid fa-radar text-xl sm:text-2xl"></i></div>
+                <h1 class="text-base sm:text-xl font-bold tracking-wide">Scanner MACD (Vercel)</h1>
             </div>
             <div class="w-full lg:w-auto space-y-2">
                 <div id="scanStatusBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-mexc-hover border border-mexc-border text-xs mb-1">
@@ -46,9 +44,12 @@
     <main class="flex-1 max-w-7xl w-full mx-auto p-2.5 sm:p-4 space-y-3 sm:space-y-4">
         <!-- Tiến trình -->
         <div id="progressContainer" class="bg-mexc-card border border-mexc-border p-3 sm:p-4 rounded-xl shadow-lg">
-            <div class="flex justify-between items-center mb-2 text-xs">
-                <span class="font-bold text-white"><i class="fa-solid fa-spinner fa-spin text-mexc-primary mr-2"></i>Tiến trình quét</span>
-                <span id="progressText" class="text-mexc-muted font-mono">0 / 0 cặp</span>
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1.5 mb-2 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="font-bold text-white"><i class="fa-solid fa-spinner fa-spin text-mexc-primary mr-2"></i>Tiến trình quét</span>
+                    <span id="progressText" class="text-mexc-muted font-mono">0 / 0 cặp</span>
+                </div>
+                <div class="text-mexc-muted text-[11px]">Tốc độ: <b class="text-white font-mono" id="statSpeed">0</b> cặp/s</div>
             </div>
             <div class="w-full bg-mexc-bg h-2 rounded-full overflow-hidden border border-mexc-border">
                 <div id="progressBar" class="bg-gradient-to-r from-mexc-primary via-teal-400 to-blue-500 h-full w-0 transition-all duration-200"></div>
@@ -57,27 +58,15 @@
 
         <!-- Thống kê -->
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl">
-                <div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Tổng Cặp MEXC</div>
-                <div class="text-lg sm:text-xl font-bold" id="statTotalPairs">0</div>
-            </div>
-            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl">
-                <div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Đã phân tích</div>
-                <div class="text-lg sm:text-xl font-bold" id="statScanned">0</div>
-            </div>
-            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl">
-                <div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Thỏa Mãn</div>
-                <div class="text-lg sm:text-xl font-bold text-emerald-400" id="statFoundTotal">0</div>
-            </div>
-            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl">
-                <div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Khung đang quét</div>
-                <div class="text-lg sm:text-xl font-bold text-amber-400" id="statActiveTf">-</div>
-            </div>
+            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl"><div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Tổng Cặp MEXC</div><div class="text-lg sm:text-xl font-bold" id="statTotalPairs">0</div></div>
+            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl"><div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Đã phân tích</div><div class="text-lg sm:text-xl font-bold" id="statScanned">0</div></div>
+            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl"><div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Thỏa Mãn</div><div class="text-lg sm:text-xl font-bold text-emerald-400" id="statFoundTotal">0</div></div>
+            <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl"><div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Khung đang quét</div><div class="text-lg sm:text-xl font-bold text-amber-400" id="statActiveTf">-</div></div>
         </div>
 
-        <!-- Lịch sử quét 3 lần gần nhất -->
+        <!-- Lịch sử quét -->
         <div id="historySection" class="hidden bg-mexc-card border border-mexc-border rounded-xl p-3 shadow-sm">
-            <div class="text-xs font-bold text-mexc-muted mb-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử 3 lần quét gần nhất:</div>
+            <div class="text-xs font-bold text-mexc-muted mb-2"><i class="fa-solid fa-clock-rotate-left mr-1"></i> Lịch sử 3 lần quét:</div>
             <div id="historyButtons" class="flex flex-wrap gap-2"></div>
         </div>
 
@@ -96,10 +85,10 @@
             <input type="text" id="searchSymbol" oninput="applyFiltersAndRender()" placeholder="Tìm Coin: BTC, ETH..." class="bg-mexc-bg border border-mexc-border rounded-lg p-2 uppercase font-semibold outline-none">
         </div>
 
-        <!-- Bảng -->
-        <div id="tableSection" class="bg-mexc-card border border-mexc-border rounded-xl overflow-hidden shadow-lg p-1 pb-0">
+        <!-- Bảng Kết Quả -->
+        <div id="tableSection" class="bg-mexc-card border border-mexc-border rounded-xl overflow-hidden shadow-lg p-1 pb-0 relative">
             <div class="p-3 sm:p-4 border-b border-mexc-border flex justify-between items-center flex-wrap gap-2">
-                <h3 class="font-bold text-sm sm:text-base line-clamp-1" id="tableTitle">Kết Quả Quét Futures</h3>
+                <h3 class="font-bold text-sm sm:text-base line-clamp-1" id="tableTitle">Kết Quả Quét</h3>
                 <div class="flex items-center gap-2">
                     <span id="resultCountBadge" class="bg-mexc-border text-mexc-muted text-[11px] sm:text-xs px-2 py-1 rounded-full font-mono">0 kết quả</span>
                     <button onclick="shareAsImage()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md active:scale-95" id="btnShareImg">
@@ -123,17 +112,14 @@
                     </tbody>
                 </table>
             </div>
-            <div id="watermark" class="hidden text-center py-2 text-mexc-muted text-[10px] bg-mexc-card border-t border-mexc-border">
-                Generated by MACD Scanner Pro
-            </div>
+            <div id="watermark" class="hidden text-center py-2 text-mexc-muted text-[10px] bg-mexc-card border-t border-mexc-border">Generated by MACD Scanner Vercel</div>
         </div>
     </main>
 
     <script>
         let topSymbols = [], tickerMap = {}, scanResults = [], filteredResults = [];
         let isScanning = false, shouldStopScan = false, currentScannedTf = '-';
-        
-        // Sửa lại map thời gian để tính timestamp lấy đúng 1000 nến
+
         const TF_MAP = {
             '1H': { label: '1H', binanceTf: '1h', mexcTf: 'Min60', seconds: 3600 },
             '4H': { label: '4H', binanceTf: '4h', mexcTf: 'Hour4', seconds: 14400 },
@@ -145,25 +131,25 @@
             renderHistory();
         });
 
-        async function fetchMyBackend(endpoint) {
-            try {
-                let res = await fetch(`/api/mexc?endpoint=${encodeURIComponent(endpoint)}`);
-                if (!res.ok) return null;
-                return res.json();
-            } catch (e) {
-                return null;
-            }
-        }
-
         function updateStatus(state, msg) {
             document.getElementById('scanStatusBadge').classList.remove('hidden');
             document.getElementById('scanStatusText').innerText = msg;
             document.getElementById('scanStatusDot').className = `w-2.5 h-2.5 rounded-full ${state === 'loading' ? 'bg-yellow-500' : 'bg-emerald-500'}`;
         }
 
+        async function fetchMyBackend(urlObj) {
+            try {
+                let res = await fetch(urlObj);
+                if (res.ok) return await res.json();
+            } catch (e) { console.error("Lỗi fetch Vercel:", e); }
+            return null;
+        }
+
         async function initSymbols() {
-            updateStatus('loading', 'Đang kết nối API MEXC Futures...');
-            let json = await fetchMyBackend('/contract/ticker');
+            updateStatus('loading', 'Đang kết nối Vercel lấy danh sách...');
+            // Dùng Vercel Proxy để tải danh sách (Không cần CORS Ext)
+            let json = await fetchMyBackend('/api/mexc?endpoint=/contract/ticker');
+            
             if (json && json.success && json.data) {
                 let futuresList = json.data.filter(item => item.symbol && item.symbol.endsWith('_USDT'))
                     .sort((a, b) => parseFloat(b.amount24 || b.volume24 || 0) - parseFloat(a.amount24 || a.volume24 || 0));
@@ -176,7 +162,7 @@
                 document.getElementById('statTotalPairs').innerText = topSymbols.length;
                 updateStatus('ready', `Sẵn sàng (${topSymbols.length} cặp Futures)`);
             } else {
-                updateStatus('ready', 'Lỗi Server. Kiểm tra lại Backend.');
+                updateStatus('ready', 'Lỗi kết nối Backend. Kiểm tra lại API.');
             }
         }
 
@@ -186,16 +172,12 @@
         function computeMACD(closes) { let ema12 = calcEMA(closes, 12), ema26 = calcEMA(closes, 26), macdLine = new Array(closes.length); for(let i=0; i<closes.length; i++) macdLine[i] = ema12[i]-ema26[i]; return { macdLine, signalLine: calcEMA(macdLine, 9) }; }
 
         function checkStrictDivergence(closes, lows) {
-            // Lọc chặn nếu dữ liệu nến < 150 (nguyên nhân gây lỗi trả về 0 kết quả ở bản trước)
             if (!closes || closes.length < 150) return { found: false };
-
             let { macdLine, signalLine } = computeMACD(closes);
             let n = closes.length;
             let lastCrossAboveZeroBar = null, currentTroughVal = null, currentTroughBar = null, currentTroughPrice = null;
             let maxSpreadTrough = 0.0, inTrough = false;
-            let b1_val = null, b1_bar = null, b1_price = null;
-            let b2_val = null, b2_bar = null, b2_price = null;
-            let b3_val = null, b3_bar = null, b3_price = null;
+            let b1_val = null, b1_bar = null, b1_price = null, b2_val = null, b2_bar = null, b2_price = null, b3_val = null, b3_bar = null, b3_price = null;
             let lastSignalAgo = -1;
 
             for (let bar = 0; bar < n; bar++) {
@@ -204,9 +186,7 @@
                 if (bar < 1) continue;
 
                 let prevMacd = macdLine[bar - 1], prevSignal = signalLine[bar - 1];
-                if ((prevMacd >= prevSignal) && (macd < signal)) {
-                    inTrough = true; currentTroughVal = macd; currentTroughBar = bar; currentTroughPrice = low; maxSpreadTrough = 0.0;
-                }
+                if ((prevMacd >= prevSignal) && (macd < signal)) { inTrough = true; currentTroughVal = macd; currentTroughBar = bar; currentTroughPrice = low; maxSpreadTrough = 0.0; }
 
                 if (macd < signal && inTrough) {
                     if (currentTroughVal === null || macd < currentTroughVal) { currentTroughVal = macd; currentTroughBar = bar; }
@@ -225,12 +205,8 @@
                             let hs_diff = b3_val !== 0 ? (Math.abs(b1_val - b3_val) / Math.abs(b3_val)) * 100 : 999.0;
                             let macdOk = (b1_val > b2_val && b2_val > b3_val) || ((b2_val < b3_val && b2_val < b1_val) && hs_diff <= 30.0);
                             
-                            if ((bar - b3_bar) <= 150 && (b1_bar - b2_bar >= 8) && (b2_bar - b3_bar >= 8) && 
-                                (b1_val < 0 && b2_val < 0 && b3_val < 0) && macdOk && 
-                                (b1_price <= b2_price && b2_price <= b3_price) && 
-                                (lastCrossAboveZeroBar === null || lastCrossAboveZeroBar < b3_bar)) {
-                                lastSignalAgo = (n - 1) - bar;
-                                b3_val = null;
+                            if ((bar - b3_bar) <= 150 && (b1_bar - b2_bar >= 8) && (b2_bar - b3_bar >= 8) && (b1_val < 0 && b2_val < 0 && b3_val < 0) && macdOk && (b1_price <= b2_price && b2_price <= b3_price) && (lastCrossAboveZeroBar === null || lastCrossAboveZeroBar < b3_bar)) {
+                                lastSignalAgo = (n - 1) - bar; b3_val = null;
                             }
                         }
                     }
@@ -240,31 +216,24 @@
             return { found: lastSignalAgo >= 0 && lastSignalAgo <= 5, candlesAgo: lastSignalAgo };
         }
 
-        async function getCombinedKlines(symbol, timeItem) {
-            // 1. Ưu tiên Fetch Binance Futures (Siêu tốc, Không chặn CORS)
+        async function getHybridKlines(symbol, timeItem) {
             try {
                 let bRes = await fetch(`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}USDT&interval=${timeItem.binanceTf}&limit=1000`);
                 if (bRes.ok) {
                     let bData = await bRes.json();
-                    if (Array.isArray(bData) && bData.length >= 150) {
-                        return { closes: bData.map(item => parseFloat(item[4])), lows: bData.map(item => parseFloat(item[3])) };
-                    }
+                    if (Array.isArray(bData) && bData.length >= 150) return { closes: bData.map(item => parseFloat(item[4])), lows: bData.map(item => parseFloat(item[3])) };
                 }
             } catch(e) {}
 
-            // 2. Chuyển hướng ESPORT và coin MEXC-Only qua Vercel. 
-            // CẦN THIẾT KẾ ĐÚNG START/END ĐỂ LẤY ĐƯỢC 1000 NẾN FUTURE (Nếu bỏ qua sẽ bị lỗi mảng < 150 nến)
             let endTs = Math.floor(Date.now() / 1000); 
             let startTs = endTs - (1000 * timeItem.seconds);
-            let endpoint = `/contract/kline/${symbol}_USDT?interval=${timeItem.mexcTf}&start=${startTs}&end=${endTs}`;
+            // Kéo qua Vercel. Tham số interval, start, end sẽ được backend Vercel nối lại
+            let url = `/api/mexc?endpoint=/contract/kline/${symbol}_USDT&interval=${timeItem.mexcTf}&start=${startTs}&end=${endTs}`;
             
-            try {
-                let mRes = await fetchMyBackend(endpoint);
-                if (mRes && mRes.success && mRes.data && mRes.data.close && mRes.data.close.length >= 150) {
-                    return { closes: mRes.data.close.map(x => parseFloat(x)), lows: mRes.data.low.map(x => parseFloat(x)) };
-                }
-            } catch(e) {}
-
+            let mRes = await fetchMyBackend(url);
+            if (mRes && mRes.success && mRes.data && mRes.data.close && mRes.data.close.length >= 150) {
+                return { closes: mRes.data.close.map(x => parseFloat(x)), lows: mRes.data.low.map(x => parseFloat(x)) };
+            }
             return null;
         }
 
@@ -280,13 +249,13 @@
             document.getElementById('tableTitle').innerText = `Kết Quả Quét Futures: ${tfKey}`;
             updateStatus('loading', `Đang quét khung ${tfKey}...`);
 
-            let scanned = 0;
+            let scanned = 0, startTime = Date.now();
 
             for (let i = 0; i < topSymbols.length; i++) {
                 if (shouldStopScan) break;
                 let symbol = topSymbols[i];
 
-                let klinesData = await getCombinedKlines(symbol, timeItem);
+                let klinesData = await getHybridKlines(symbol, timeItem);
                 
                 if (klinesData) {
                     let res = checkStrictDivergence(klinesData.closes, klinesData.lows);
@@ -299,9 +268,12 @@
                 document.getElementById('statScanned').innerText = scanned;
                 document.getElementById('progressText').innerText = `${scanned} / ${topSymbols.length}`;
                 document.getElementById('progressBar').style.width = `${Math.round((scanned/topSymbols.length)*100)}%`;
-                applyFiltersAndRender();
                 
-                await new Promise(r => setTimeout(r, 20));
+                let elapsed = (Date.now() - startTime) / 1000;
+                document.getElementById('statSpeed').innerText = (scanned / Math.max(1, elapsed)).toFixed(1);
+
+                applyFiltersAndRender();
+                await new Promise(r => setTimeout(r, 30));
             }
             
             isScanning = false; document.getElementById('btnStopScan').classList.add('hidden'); 
@@ -327,10 +299,7 @@
             filteredResults.forEach(i => {
                 let badge = i.candlesAgo === 0 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50' : 'bg-sky-500/20 text-sky-300 border-sky-500/40';
                 let cleanSymbol = i.symbol.replace('USDT', '');
-                let tvMexc = `https://www.tradingview.com/chart/?symbol=MEXC:${cleanSymbol}USDT.P`;
-                let tvBinance = `https://www.tradingview.com/chart/?symbol=BINANCE:${cleanSymbol}USDT.P`;
-                let tvBybit = `https://www.tradingview.com/chart/?symbol=BYBIT:${cleanSymbol}USDT.P`;
-
+                
                 html += `
                     <tr class="hover:bg-mexc-hover/60 border-b border-mexc-border/40 whitespace-nowrap">
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 font-bold text-white">${i.symbol}</td>
@@ -339,9 +308,9 @@
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center"><span class="border text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${badge}">${i.tf} - ${i.candlesAgo === 0 ? 'Live (0)' : `Cách ${i.candlesAgo} nến`}</span></td>
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center hide-on-capture">
                             <div class="flex flex-row items-center justify-center gap-1.5">
-                                <a href="${tvBinance}" target="_blank" class="px-2 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 border border-yellow-500/30 rounded text-[10px] font-medium transition">BINANCE</a>
-                                <a href="${tvBybit}" target="_blank" class="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded text-[10px] font-medium transition">BYBIT</a>
-                                <a href="${tvMexc}" target="_blank" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-medium transition">MEXC</a>
+                                <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${cleanSymbol}USDT.P" target="_blank" class="px-2 py-1 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-300 border border-yellow-500/30 rounded text-[10px] font-medium transition">BINANCE</a>
+                                <a href="https://www.tradingview.com/chart/?symbol=BYBIT:${cleanSymbol}USDT.P" target="_blank" class="px-2 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 rounded text-[10px] font-medium transition">BYBIT</a>
+                                <a href="https://www.tradingview.com/chart/?symbol=MEXC:${cleanSymbol}USDT.P" target="_blank" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 rounded text-[10px] font-medium transition">MEXC</a>
                             </div>
                         </td>
                     </tr>`;
@@ -349,7 +318,6 @@
             tbody.innerHTML = html;
         }
 
-        // TÍNH NĂNG LƯU & XEM LỊCH SỬ
         function saveScanHistory(tfKey, results) {
             let history = JSON.parse(localStorage.getItem('macdScannerHistory') || '[]');
             let timeStr = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -361,12 +329,9 @@
 
         function renderHistory() {
             let history = JSON.parse(localStorage.getItem('macdScannerHistory') || '[]');
-            let container = document.getElementById('historySection');
-            let btnWrapper = document.getElementById('historyButtons');
+            let container = document.getElementById('historySection'), btnWrapper = document.getElementById('historyButtons');
             if (history.length === 0) return;
-            
-            container.classList.remove('hidden');
-            btnWrapper.innerHTML = '';
+            container.classList.remove('hidden'); btnWrapper.innerHTML = '';
             history.forEach((h, index) => {
                 let btn = document.createElement('button');
                 btn.className = 'px-3 py-1.5 bg-mexc-hover border border-mexc-border hover:border-mexc-primary text-xs font-bold rounded-lg text-mexc-muted hover:text-white transition';
@@ -379,53 +344,34 @@
         function loadHistoryData(index) {
             let history = JSON.parse(localStorage.getItem('macdScannerHistory') || '[]');
             if (history[index]) {
-                scanResults = history[index].data;
-                currentScannedTf = history[index].tf;
+                scanResults = history[index].data; currentScannedTf = history[index].tf;
                 document.getElementById('statActiveTf').innerText = currentScannedTf;
                 document.getElementById('tableTitle').innerText = `Kết Quả Xem Lại: ${currentScannedTf} (${history[index].time})`;
                 applyFiltersAndRender();
             }
         }
 
-        // TÍNH NĂNG CHIA SẺ ẢNH
         async function shareAsImage() {
-            let btnShare = document.getElementById('btnShareImg');
-            let origText = btnShare.innerHTML;
+            let btnShare = document.getElementById('btnShareImg'), origText = btnShare.innerHTML;
             btnShare.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Xuất ảnh...`;
+            let tableNode = document.getElementById('tableSection'), watermark = document.getElementById('watermark');
             
-            let tableNode = document.getElementById('tableSection');
-            let watermark = document.getElementById('watermark');
-            
-            btnShare.classList.add('hidden');
-            watermark.classList.remove('hidden');
-            let hideEls = document.querySelectorAll('.hide-on-capture');
-            hideEls.forEach(el => el.classList.add('hidden'));
+            btnShare.classList.add('hidden'); watermark.classList.remove('hidden');
+            document.querySelectorAll('.hide-on-capture').forEach(el => el.classList.add('hidden'));
 
             try {
                 let canvas = await html2canvas(tableNode, { backgroundColor: '#151924', scale: 2, logging: false });
                 canvas.toBlob(async function(blob) {
-                    let filename = `TinHieu_${currentScannedTf}_${Date.now()}.png`;
-                    let file = new File([blob], filename, { type: 'image/png' });
-                    
+                    let filename = `TinHieu_${currentScannedTf}_${Date.now()}.png`, file = new File([blob], filename, { type: 'image/png' });
                     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        try { await navigator.share({ title: 'Tín Hiệu MACD', files: [file] }); } 
-                        catch (e) { downloadFile(URL.createObjectURL(blob), filename); }
-                    } else { downloadFile(URL.createObjectURL(blob), filename); }
-                    
-                    restoreShareBtn();
+                        try { await navigator.share({ title: 'Tín Hiệu MACD', files: [file] }); } catch (e) { let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); }
+                    } else { let a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; a.click(); }
+                    restore();
                 });
-            } catch(e) {
-                alert("Lỗi tạo ảnh."); restoreShareBtn();
-            }
+            } catch(e) { alert("Lỗi tạo ảnh."); restore(); }
 
-            function restoreShareBtn() {
-                btnShare.classList.remove('hidden');
-                btnShare.innerHTML = origText;
-                watermark.classList.add('hidden');
-                hideEls.forEach(el => el.classList.remove('hidden'));
-            }
+            function restore() { btnShare.classList.remove('hidden'); btnShare.innerHTML = origText; watermark.classList.add('hidden'); document.querySelectorAll('.hide-on-capture').forEach(el => el.classList.remove('hidden')); }
         }
-        function downloadFile(url, filename) { let a = document.createElement('a'); a.href = url; a.download = filename; a.click(); }
     </script>
 </body>
 </html>
