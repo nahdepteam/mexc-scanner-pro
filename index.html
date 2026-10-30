@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scanner MACD Pro (Vercel Backend)</title>
+    <title>SIGNAL PRO</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = { darkMode: 'class', theme: { extend: { colors: { mexc: { bg: '#0b0e14', card: '#151924', border: '#232838', hover: '#1e2436', primary: '#00b897', bull: '#0ECB81', bear: '#F6465D', muted: '#848E9C' } } } } }
@@ -16,25 +16,30 @@
         ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: #151924; }
         ::-webkit-scrollbar-thumb { background: #232838; border-radius: 4px; }
+        .gradient-text { background: linear-gradient(to right, #00b897, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col bg-mexc-bg text-gray-200 text-xs sm:text-sm">
+<body class="min-h-screen flex flex-col bg-mexc-bg text-gray-200 text-xs sm:text-sm relative">
 
     <header class="bg-mexc-card border-b border-mexc-border sticky top-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 shadow-md">
         <div class="max-w-7xl mx-auto flex flex-col lg:flex-row justify-between items-center gap-2.5 sm:gap-3">
-            <div class="flex items-center gap-2.5">
-                <div class="bg-mexc-primary/20 p-2 rounded-lg text-mexc-primary border border-mexc-primary/30 shrink-0"><i class="fa-solid fa-radar text-xl sm:text-2xl"></i></div>
-                <h1 class="text-base sm:text-xl font-bold tracking-wide">Scanner MACD Pro (Serverless)</h1>
+            <div class="flex items-center gap-3">
+                <!-- Logo Mới -->
+                <div class="bg-gradient-to-br from-emerald-500 to-cyan-500 p-2 sm:p-2.5 rounded-xl text-white shadow-lg shadow-emerald-500/20 shrink-0 flex items-center justify-center">
+                    <i class="fa-solid fa-bolt text-lg sm:text-xl"></i>
+                </div>
+                <!-- Tiêu đề mới -->
+                <h1 class="text-lg sm:text-2xl font-extrabold tracking-wider gradient-text uppercase">Signal Pro</h1>
             </div>
             <div class="w-full lg:w-auto space-y-2">
-                <div id="scanStatusBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-mexc-hover border border-mexc-border text-xs mb-1">
+                <div id="scanStatusBadge" class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-mexc-hover border border-mexc-border text-xs mb-1 w-fit ml-auto">
                     <span id="scanStatusDot" class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
                     <span id="scanStatusText" class="text-mexc-muted font-medium">Sẵn sàng...</span>
                 </div>
                 <div class="grid grid-cols-3 sm:flex sm:flex-wrap items-center gap-1.5 sm:gap-2 w-full justify-end">
-                    <button onclick="startScan('1H')" class="w-full sm:w-auto px-2.5 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1"><i class="fa-solid fa-play text-[10px]"></i> Quét 1H</button>
-                    <button onclick="startScan('4H')" class="w-full sm:w-auto px-2.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1"><i class="fa-solid fa-play text-[10px]"></i> Quét 4H</button>
-                    <button onclick="startScan('1D')" class="w-full sm:w-auto px-2.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1"><i class="fa-solid fa-play text-[10px]"></i> Quét 1D</button>
+                    <button onclick="startScan('1H')" class="w-full sm:w-auto px-3 py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> Quét 1H</button>
+                    <button onclick="startScan('4H')" class="w-full sm:w-auto px-3 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> Quét 4H</button>
+                    <button onclick="startScan('1D')" class="w-full sm:w-auto px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-all text-xs flex items-center justify-center gap-1.5"><i class="fa-solid fa-play text-[10px]"></i> Quét 1D</button>
                     <button id="btnStopScan" onclick="stopScan()" class="hidden col-span-3 sm:w-auto px-3 py-2 bg-red-500/20 text-red-400 border border-red-500/30 font-semibold rounded-lg transition text-xs flex items-center justify-center gap-1.5"><i class="fa-solid fa-xmark"></i> Dừng</button>
                 </div>
             </div>
@@ -45,11 +50,17 @@
         <!-- Tiến trình -->
         <div class="bg-mexc-card border border-mexc-border p-3 sm:p-4 rounded-xl shadow-lg">
             <div class="flex justify-between items-center mb-2 text-xs">
-                <span class="font-bold text-white"><i class="fa-solid fa-spinner fa-spin text-mexc-primary mr-2"></i>Tiến trình quét</span>
-                <span id="progressText" class="text-mexc-muted font-mono">0 / 0 cặp</span>
+                <span class="font-bold text-white flex items-center">
+                    <i id="spinnerIcon" class="fa-solid fa-spinner text-mexc-primary mr-2"></i> Tiến trình quét
+                </span>
+                <div class="flex items-center gap-3 sm:gap-5">
+                    <!-- Tốc độ quét -->
+                    <span id="scanSpeedText" class="text-emerald-400 font-mono font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20"><i class="fa-solid fa-gauge-high mr-1"></i>0 cặp/s</span>
+                    <span id="progressText" class="text-mexc-muted font-mono">0 / 0 cặp</span>
+                </div>
             </div>
             <div class="w-full bg-mexc-bg h-2 rounded-full overflow-hidden border border-mexc-border">
-                <div id="progressBar" class="bg-gradient-to-r from-mexc-primary via-teal-400 to-blue-500 h-full w-0 transition-all duration-200"></div>
+                <div id="progressBar" class="bg-gradient-to-r from-cyan-500 via-emerald-400 to-teal-500 h-full w-0 transition-all duration-200"></div>
             </div>
         </div>
 
@@ -68,50 +79,78 @@
                 <div class="text-lg sm:text-xl font-bold text-emerald-400" id="statFoundTotal">0</div>
             </div>
             <div class="bg-mexc-card border border-mexc-border p-2.5 sm:p-3.5 rounded-xl">
-                <div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Khung đang quét</div>
+                <div class="text-[11px] sm:text-xs text-mexc-muted mb-0.5">Khung đang xem</div>
                 <div class="text-lg sm:text-xl font-bold text-amber-400" id="statActiveTf">-</div>
             </div>
         </div>
 
-        <!-- Bộ lọc -->
-        <div class="bg-mexc-card border border-mexc-border rounded-xl p-3 sm:p-4 shadow-sm grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 text-xs">
-            <select id="filterMaxCandlesAgo" onchange="applyFiltersAndRender()" class="bg-mexc-bg border border-emerald-500/40 rounded-lg p-2 font-semibold text-white outline-none">
+        <!-- Bộ lọc & Công cụ -->
+        <div class="bg-mexc-card border border-mexc-border rounded-xl p-3 sm:p-4 shadow-sm grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3 text-xs">
+            <select id="filterMaxCandlesAgo" onchange="applyFiltersAndRender()" class="md:col-span-3 bg-mexc-bg border border-emerald-500/40 rounded-lg p-2 font-semibold text-white outline-none">
                 <option value="0">Chỉ nến Live (0)</option>
                 <option value="1">Trong vòng ≤ 1 nến</option>
                 <option value="3">Trong vòng ≤ 3 nến</option>
                 <option value="5" selected>⚡ Trong vòng ≤ 5 nến (Mặc định)</option>
+                <option value="10">Trong vòng ≤ 10 nến</option>
             </select>
-            <select id="sortOption" onchange="applyFiltersAndRender()" class="bg-mexc-bg border border-mexc-border rounded-lg p-2 text-white font-semibold outline-none">
+            <select id="sortOption" onchange="applyFiltersAndRender()" class="md:col-span-3 bg-mexc-bg border border-mexc-border rounded-lg p-2 text-white font-semibold outline-none">
                 <option value="recency" selected>⚡ Tín hiệu mới nhất</option>
                 <option value="changeDesc">🚀 Biến động 24h (% Tăng)</option>
             </select>
-            <input type="text" id="searchSymbol" oninput="applyFiltersAndRender()" placeholder="Tìm Coin: BTC, ETH..." class="bg-mexc-bg border border-mexc-border rounded-lg p-2 uppercase font-semibold outline-none">
+            <input type="text" id="searchSymbol" oninput="applyFiltersAndRender()" placeholder="Tìm Coin: BTC, ETH..." class="md:col-span-3 bg-mexc-bg border border-mexc-border rounded-lg p-2 uppercase font-semibold outline-none">
+            
+            <!-- Nút Lịch sử -->
+            <button onclick="toggleHistoryModal()" class="md:col-span-3 bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/50 rounded-lg p-2 font-bold text-white transition-all flex justify-center items-center gap-2">
+                <i class="fa-solid fa-clock-rotate-left"></i> Lịch sử (5 lần gần nhất)
+            </button>
         </div>
 
         <!-- Bảng -->
-        <div id="tableSection" class="bg-mexc-card border border-mexc-border rounded-xl overflow-hidden shadow-lg p-1 pb-0">
-            <div class="p-3 sm:p-4 border-b border-mexc-border flex justify-between items-center">
-                <h3 class="font-bold text-sm sm:text-base" id="tableTitle">Kết Quả Quét Futures</h3>
-                <span id="resultCountBadge" class="bg-mexc-border text-mexc-muted text-xs px-2 py-1 rounded-full font-mono">0 kết quả</span>
-            </div>
-            <div class="overflow-x-auto bg-mexc-card">
-                <table class="w-full text-left border-collapse min-w-[600px] sm:min-w-full">
-                    <thead>
-                        <tr class="bg-mexc-bg/60 text-mexc-muted text-[11px] sm:text-xs uppercase border-b border-mexc-border whitespace-nowrap">
-                            <th class="py-3 px-4">Cặp Tiền</th>
-                            <th class="py-3 px-4">Giá Live</th>
-                            <th class="py-3 px-4">24h %</th>
-                            <th class="py-3 px-4 text-center">Tín Hiệu</th>
-                            <th class="py-3 px-4 text-center">Chart TradingView</th>
-                        </tr>
-                    </thead>
-                    <tbody id="scannerTableBody" class="divide-y divide-mexc-border/50 text-xs sm:text-sm">
-                        <tr><td colspan="5" class="py-10 text-center text-mexc-muted">Chưa quét. Hãy bấm nút Quét bên trên.</td></tr>
-                    </tbody>
-                </table>
+        <div id="exportWrapper" class="bg-mexc-bg rounded-xl overflow-hidden shadow-lg border border-mexc-border/50">
+            <div id="tableSection" class="bg-mexc-card p-1 pb-0">
+                <div class="p-3 sm:p-4 border-b border-mexc-border flex justify-between items-center bg-mexc-card">
+                    <h3 class="font-bold text-sm sm:text-base flex items-center gap-2" id="tableTitle"><i class="fa-solid fa-list-check text-mexc-primary"></i> Kết Quả Quét Futures</h3>
+                    
+                    <div class="flex gap-2 items-center">
+                        <span id="resultCountBadge" class="bg-mexc-border text-mexc-muted text-xs px-2 py-1 rounded-full font-mono">0 kết quả</span>
+                        <!-- Nút Chụp Ảnh -->
+                        <button onclick="captureAndShare()" class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs px-3 py-1.5 rounded-lg font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-900/50">
+                            <i class="fa-solid fa-camera"></i> <span class="hidden sm:inline">Chia sẻ ảnh</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto bg-mexc-card rounded-b-xl">
+                    <table class="w-full text-left border-collapse min-w-[600px] sm:min-w-full">
+                        <thead>
+                            <tr class="bg-mexc-bg/60 text-mexc-muted text-[11px] sm:text-xs uppercase border-b border-mexc-border whitespace-nowrap">
+                                <th class="py-3 px-4">Cặp Tiền</th>
+                                <th class="py-3 px-4">Giá Live</th>
+                                <th class="py-3 px-4">24h %</th>
+                                <th class="py-3 px-4 text-center">Tín Hiệu</th>
+                                <th class="py-3 px-4 text-center" data-html2canvas-ignore>Chart TradingView</th>
+                            </tr>
+                        </thead>
+                        <tbody id="scannerTableBody" class="divide-y divide-mexc-border/50 text-xs sm:text-sm">
+                            <tr><td colspan="5" class="py-10 text-center text-mexc-muted">Chưa quét. Hãy bấm nút Quét bên trên.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Modal Lịch sử -->
+    <div id="historyModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex-col justify-center items-center p-4">
+        <div class="bg-mexc-card border border-mexc-border rounded-xl w-full max-w-lg shadow-2xl overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-mexc-border bg-mexc-hover">
+                <h3 class="font-bold text-lg text-white"><i class="fa-solid fa-clock-rotate-left text-indigo-400 mr-2"></i>Lịch sử quét</h3>
+                <button onclick="toggleHistoryModal()" class="text-mexc-muted hover:text-red-400 transition text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-2 max-h-[60vh] overflow-y-auto" id="historyList">
+                <!-- Data đổ vào đây -->
+            </div>
+        </div>
+    </div>
 
     <script>
         let topSymbols = [], tickerMap = {}, scanResults = [], filteredResults = [];
@@ -122,6 +161,7 @@
             '4H': { label: '4H', binanceTf: '4h', mexcTf: '4h' },
             '1D': { label: '1D', binanceTf: '1d', mexcTf: '1d' }
         };
+        const HISTORY_KEY = 'signalProHistory';
 
         async function fetchMyBackend(endpoint) {
             let res = await fetch(`/api/mexc?endpoint=${encodeURIComponent(endpoint)}`);
@@ -135,6 +175,11 @@
             document.getElementById('scanStatusBadge').classList.remove('hidden');
             document.getElementById('scanStatusText').innerText = msg;
             document.getElementById('scanStatusDot').className = `w-2.5 h-2.5 rounded-full ${state === 'loading' ? 'bg-yellow-500' : 'bg-emerald-500'}`;
+            if(state === 'loading') {
+                document.getElementById('spinnerIcon').classList.add('fa-spin');
+            } else {
+                document.getElementById('spinnerIcon').classList.remove('fa-spin');
+            }
         }
 
         async function initSymbols() {
@@ -179,70 +224,37 @@
                     if (Array.isArray(data) && data.length > 100) return data;
                 }
             } catch(e) {}
-
             return null;
         }
 
         function checkStrictDivergence(rawList) {
             if (!rawList || rawList.length < 150) return { found: false };
-
             let closes = rawList.map(item => parseFloat(item[4]));
             let lows = rawList.map(item => parseFloat(item[3]));
-
             let { macdLine, signalLine } = computeMACD(closes);
             let n = closes.length;
-
-            const maxBars = 150;
-            const minBarsBetween = 8;
-            const minSpreadPct = 13.0;
-            const hsMaxDiffPct = 30.0;
-            const WARMUP_BARS = 50;
-
-            let lastCrossAboveZeroBar = null;
-            let currentTroughVal = null, currentTroughBar = null, currentTroughPrice = null;
-            let maxSpreadTrough = 0.0;
-            let inTrough = false;
-
-            let b1_val = null, b1_bar = null, b1_price = null;
-            let b2_val = null, b2_bar = null, b2_price = null;
-            let b3_val = null, b3_bar = null, b3_price = null;
-
+            const maxBars = 150, minBarsBetween = 8, minSpreadPct = 13.0, hsMaxDiffPct = 30.0, WARMUP_BARS = 50;
+            let lastCrossAboveZeroBar = null, currentTroughVal = null, currentTroughBar = null, currentTroughPrice = null, maxSpreadTrough = 0.0, inTrough = false;
+            let b1_val = null, b1_bar = null, b1_price = null, b2_val = null, b2_bar = null, b2_price = null, b3_val = null, b3_bar = null, b3_price = null;
             let lastSignalAgo = -1;
 
             for (let bar = 0; bar < n; bar++) {
-                let macd = macdLine[bar];
-                let signal = signalLine[bar];
-                let low = lows[bar];
-
+                let macd = macdLine[bar], signal = signalLine[bar], low = lows[bar];
                 if (macd > 0) lastCrossAboveZeroBar = bar;
                 if (bar < 1) continue;
-
-                let prevMacd = macdLine[bar - 1];
-                let prevSignal = signalLine[bar - 1];
-
+                let prevMacd = macdLine[bar - 1], prevSignal = signalLine[bar - 1];
                 let crossUnderSig = (prevMacd >= prevSignal) && (macd < signal);
                 let crossOverSig  = (prevMacd <= prevSignal) && (macd > signal);
 
                 if (crossUnderSig) {
-                    inTrough = true;
-                    currentTroughVal = macd;
-                    currentTroughBar = bar;
-                    currentTroughPrice = low;
-                    maxSpreadTrough = 0.0;
+                    inTrough = true; currentTroughVal = macd; currentTroughBar = bar; currentTroughPrice = low; maxSpreadTrough = 0.0;
                 }
-
                 if (macd < signal && inTrough) {
-                    if (currentTroughVal === null || macd < currentTroughVal) {
-                        currentTroughVal = macd;
-                        currentTroughBar = bar;
-                    }
-                    if (currentTroughPrice === null || low < currentTroughPrice) {
-                        currentTroughPrice = low;
-                    }
+                    if (currentTroughVal === null || macd < currentTroughVal) { currentTroughVal = macd; currentTroughBar = bar; }
+                    if (currentTroughPrice === null || low < currentTroughPrice) currentTroughPrice = low;
                     let spread = macd !== 0 ? (Math.abs(macd - signal) / Math.abs(macd)) * 100 : 0;
                     if (spread > maxSpreadTrough) maxSpreadTrough = spread;
                 }
-
                 if (crossOverSig) {
                     if (inTrough && maxSpreadTrough >= minSpreadPct && bar >= WARMUP_BARS) {
                         b3_val = b2_val; b3_bar = b2_bar; b3_price = b2_price;
@@ -254,25 +266,22 @@
                             let cond_minDist = (b1_bar - b2_bar >= minBarsBetween) && (b2_bar - b3_bar >= minBarsBetween);
                             let cond_belowZero = (b1_val < 0 && b2_val < 0 && b3_val < 0);
                             let cond_noCrossZ = (lastCrossAboveZeroBar === null || lastCrossAboveZeroBar < b3_bar);
-
                             let hs_diff_bot = b3_val !== 0 ? (Math.abs(b1_val - b3_val) / Math.abs(b3_val)) * 100 : 999.0;
                             let cond_hs_shoulders_bot = hs_diff_bot <= hsMaxDiffPct;
-
                             let macd_Standard = (b1_val > b2_val && b2_val > b3_val);
                             let macd_HS = (b2_val < b3_val && b2_val < b1_val) && cond_hs_shoulders_bot;
                             let cond_macdDivBot = (macd_Standard || macd_HS);
                             let cond_priceDivBot = (b1_price <= b2_price && b2_price <= b3_price);
 
                             if (cond_maxDist && cond_minDist && cond_belowZero && cond_macdDivBot && cond_priceDivBot && cond_noCrossZ) {
-                                lastSignalAgo = (n - 1) - bar;
-                                b3_val = null;
+                                lastSignalAgo = (n - 1) - bar; b3_val = null;
                             }
                         }
                     }
                     inTrough = false;
                 }
             }
-            return { found: lastSignalAgo >= 0 && lastSignalAgo <= 5, candlesAgo: lastSignalAgo };
+            return { found: lastSignalAgo >= 0 && lastSignalAgo <= 10, candlesAgo: lastSignalAgo };
         }
 
         async function startScan(tfKey) {
@@ -281,8 +290,9 @@
 
             let timeItem = TF_MAP[tfKey];
             isScanning = true; shouldStopScan = false; scanResults = []; currentScannedTf = tfKey;
-            document.getElementById('btnStopScan').classList.remove('hidden'); document.getElementById('statActiveTf').innerText = tfKey;
-            updateStatus('loading', `Đang quét khung ${tfKey}...`);
+            document.getElementById('btnStopScan').classList.remove('hidden'); 
+            document.getElementById('statActiveTf').innerText = tfKey;
+            updateStatus('loading', `Đang quét ${tfKey}...`);
 
             let scanned = 0, startTime = Date.now();
 
@@ -300,14 +310,27 @@
                 }
 
                 scanned++;
+                
+                // Tính và hiển thị Tốc độ quét
+                let elapsedSeconds = (Date.now() - startTime) / 1000;
+                let speed = elapsedSeconds > 0 ? (scanned / elapsedSeconds).toFixed(1) : 0;
+                document.getElementById('scanSpeedText').innerHTML = `<i class="fa-solid fa-gauge-high mr-1"></i>${speed} cặp/s`;
+
                 document.getElementById('statScanned').innerText = scanned;
                 document.getElementById('progressText').innerText = `${scanned} / ${topSymbols.length}`;
                 document.getElementById('progressBar').style.width = `${Math.round((scanned/topSymbols.length)*100)}%`;
-                applyFiltersAndRender();
                 
+                applyFiltersAndRender();
                 await new Promise(r => setTimeout(r, 5));
             }
-            isScanning = false; document.getElementById('btnStopScan').classList.add('hidden'); updateStatus('ready', `Hoàn thành!`);
+            
+            isScanning = false; 
+            document.getElementById('btnStopScan').classList.add('hidden'); 
+            document.getElementById('scanSpeedText').innerHTML = `<i class="fa-solid fa-check mr-1"></i>Hoàn tất`;
+            updateStatus('ready', `Hoàn thành!`);
+
+            // Lưu lịch sử khi quét xong (nếu không bị bấm Dừng giữa chừng)
+            if (!shouldStopScan) saveToHistory(tfKey, scanResults);
         }
 
         function applyFiltersAndRender() {
@@ -328,26 +351,114 @@
             filteredResults.forEach(i => {
                 let badge = i.candlesAgo === 0 ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50' : 'bg-sky-500/20 text-sky-300 border-sky-500/40';
                 let cleanSymbol = i.symbol.replace('USDT', '');
-                let tvMexc = `https://www.tradingview.com/chart/?symbol=MEXC:${cleanSymbol}USDT.P`;
-                let tvBinance = `https://www.tradingview.com/chart/?symbol=BINANCE:${cleanSymbol}USDT.P`;
-                let tvBybit = `https://www.tradingview.com/chart/?symbol=BYBIT:${cleanSymbol}USDT.P`;
-
+                
                 html += `
                     <tr class="hover:bg-mexc-hover/60 border-b border-mexc-border/40 whitespace-nowrap">
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 font-bold text-white">${i.symbol}</td>
-                        <td class="py-2.5 px-3 sm:py-3 sm:px-4 font-mono">$${i.price.toFixed(4)}</td>
+                        <td class="py-2.5 px-3 sm:py-3 sm:px-4 font-mono text-emerald-400">$${i.price.toFixed(4)}</td>
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 font-mono ${i.change >= 0 ? 'text-mexc-bull' : 'text-mexc-bear'}">${i.change >= 0 ? '+' : ''}${i.change.toFixed(2)}%</td>
                         <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center"><span class="border text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-bold ${badge}">${i.tf} - ${i.candlesAgo === 0 ? 'Live (0)' : `Cách ${i.candlesAgo} nến`}</span></td>
-                        <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center">
+                        <td class="py-2.5 px-3 sm:py-3 sm:px-4 text-center" data-html2canvas-ignore>
                             <div class="flex flex-row items-center justify-center gap-1.5">
-                                <a href="${tvBinance}" target="_blank" class="px-2 py-1 bg-yellow-500/20 text-yellow-300 rounded text-[10px] font-medium">BINANCE</a>
-                                <a href="${tvBybit}" target="_blank" class="px-2 py-1 bg-amber-500/20 text-amber-300 rounded text-[10px] font-medium">BYBIT</a>
-                                <a href="${tvMexc}" target="_blank" class="px-2 py-1 bg-emerald-500/20 text-emerald-300 rounded text-[10px] font-medium">MEXC</a>
+                                <a href="https://www.tradingview.com/chart/?symbol=BINANCE:${cleanSymbol}USDT.P" target="_blank" class="px-2 py-1 bg-yellow-500/20 hover:bg-yellow-500/40 text-yellow-300 rounded text-[10px] font-medium transition">BINANCE</a>
+                                <a href="https://www.tradingview.com/chart/?symbol=MEXC:${cleanSymbol}USDT.P" target="_blank" class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-300 rounded text-[10px] font-medium transition">MEXC</a>
                             </div>
                         </td>
                     </tr>`;
             });
             tbody.innerHTML = html;
+        }
+
+        /* ----- TÍNH NĂNG MỚI: CHỤP ẢNH & LƯU LỊCH SỬ ----- */
+
+        // Chụp ảnh bảng kết quả
+        function captureAndShare() {
+            if(scanResults.length === 0 && filteredResults.length === 0) {
+                alert("Chưa có dữ liệu quét để chụp ảnh!"); return;
+            }
+            let target = document.getElementById('tableSection');
+            
+            updateStatus('loading', 'Đang tạo ảnh...');
+            html2canvas(target, { 
+                backgroundColor: '#151924',
+                scale: 2 // Tăng độ nét
+            }).then(canvas => {
+                let link = document.createElement('a');
+                let timeStr = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+                link.download = `SignalPro_${currentScannedTf}_${timeStr}.png`;
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                updateStatus('ready', 'Đã lưu ảnh thành công!');
+            }).catch(err => {
+                updateStatus('ready', 'Lỗi khi tạo ảnh');
+            });
+        }
+
+        // Lưu lịch sử vào LocalStorage
+        function saveToHistory(tf, results) {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            let record = {
+                id: Date.now(),
+                time: new Date().toLocaleString('vi-VN'),
+                tf: tf,
+                count: results.length,
+                data: results
+            };
+            history.unshift(record); // Thêm vào đầu
+            if (history.length > 5) history.pop(); // Giữ đúng 5 lần
+            localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+        }
+
+        // Đóng mở Modal Lịch sử
+        function toggleHistoryModal() {
+            let modal = document.getElementById('historyModal');
+            if(modal.classList.contains('hidden')) {
+                renderHistoryList();
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        }
+
+        // Render danh sách lịch sử
+        function renderHistoryList() {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            let container = document.getElementById('historyList');
+            
+            if(history.length === 0) {
+                container.innerHTML = `<div class="text-center p-6 text-mexc-muted">Chưa có lịch sử quét nào.</div>`;
+                return;
+            }
+
+            let html = '';
+            history.forEach(item => {
+                html += `
+                <div class="bg-mexc-bg p-3 mb-2 rounded-lg border border-mexc-border flex justify-between items-center hover:border-indigo-500/50 transition">
+                    <div>
+                        <div class="text-xs text-mexc-muted">${item.time}</div>
+                        <div class="font-bold text-white mt-1">Khung <span class="text-amber-400">${item.tf}</span> • Tím thấy: <span class="text-emerald-400">${item.count} cặp</span></div>
+                    </div>
+                    <button onclick="loadHistoryItem(${item.id})" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition">Xem lại</button>
+                </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        // Nạp lại data từ một mục lịch sử
+        function loadHistoryItem(id) {
+            let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+            let record = history.find(h => h.id === id);
+            if(record) {
+                scanResults = record.data;
+                currentScannedTf = record.tf;
+                document.getElementById('statActiveTf').innerText = record.tf + ' (Từ Lịch sử)';
+                document.getElementById('progressBar').style.width = '100%';
+                document.getElementById('scanSpeedText').innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i>Đã nạp`;
+                applyFiltersAndRender();
+                toggleHistoryModal();
+            }
         }
     </script>
 </body>
